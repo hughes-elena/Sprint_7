@@ -1,4 +1,4 @@
-package ru.praktikum.pojo;
+package ru.praktikum.modelsPojo;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class OrderCreation {
     private String metroStation = "Арбатская";
     private String phone = "89031111111";
     private int rentTime = 3;
-    private String deliveryDate = "2025-26-05";
+    private String deliveryDate = "2025-05-26";
     private String comment = "Спасибо";
     private List<String> color;
 

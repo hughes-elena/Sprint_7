@@ -1,4 +1,4 @@
-package ru.praktikum.pojo;
+package ru.praktikum.modelsPojo;
 
 public class CourierLogin {
     private String login;
