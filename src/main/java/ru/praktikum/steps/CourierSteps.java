@@ -5,7 +5,9 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import ru.praktikum.api.ApiEndpoints;
-import ru.praktikum.modelsPojo.*;
+import ru.praktikum.models.pojo.CourierCreation;
+import ru.praktikum.models.pojo.CourierId;
+import ru.praktikum.models.pojo.CourierLogin;
 
 import static io.restassured.RestAssured.given;
 
@@ -39,9 +41,7 @@ public class CourierSteps {
     public void deleteCourier(int courierId) {
         prepareRequest()
                 .when()
-                .delete(ApiEndpoints.COURIER_DELETE + courierId)
-                .then()
-                .statusCode(200);
+                .delete(ApiEndpoints.COURIER_DELETE + courierId);
 
     }
 
@@ -58,5 +58,18 @@ public class CourierSteps {
         } else {
             System.out.println("Курьер не найден при логине — удаление не требуется");
         }; //удаляем курьера по Id
+    }
+
+    @Step("Удалить курьера без ID")
+    public Response deleteCourierWithoutId() {
+        return prepareRequest()
+                .delete(ApiEndpoints.COURIER_DELETE); // без добавления ID
+    }
+
+    @Step("Удалить курьера по несуществующему ID")
+    public Response deleteNonExistentCourier(int courierId) {
+        return prepareRequest()
+                .when()
+                .delete(ApiEndpoints.COURIER_DELETE + courierId);
     }
 }

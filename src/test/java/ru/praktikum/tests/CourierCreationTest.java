@@ -3,24 +3,32 @@ package ru.praktikum.tests;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
+import org.junit.After;
 import org.junit.Test;
-import ru.praktikum.modelsPojo.CourierCreation;
-import ru.praktikum.modelsPojo.CourierLogin;
+import ru.praktikum.models.pojo.CourierCreation;
+import ru.praktikum.models.pojo.CourierLogin;
 import ru.praktikum.steps.CourierSteps;
-
+import static org.apache.http.HttpStatus.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import com.github.javafaker.Faker; // для генерации случайных данных
 
 @DisplayName("Тесты API создания курьера")
 public class CourierCreationTest {
     // Инициализируем шаги для работы с API курьеров
     private final CourierSteps courierSteps = new CourierSteps();
-    // Тестовые данные курьера
-    public static String login = "ElenaH";
-    public static String password = "Qwerty123";
-    public static String firstName = "Елена";
+    private final Faker faker = new Faker(); // Создаём объект Faker
 
+    // Создаем случайные тестовые данные курьера
+    private  String login = faker.name().username();
+    private  String password = faker.internet().password();
+    private final String firstName = faker.name().firstName();
+    private final CourierLogin loginData = new CourierLogin(login, password);
 
+    @After
+    public void tearDown() {
+        courierSteps.deleteCourierAfterLogin(loginData);
+    }
     /**
      * Тест на успешное создание курьера с валидными данными.
      * Проверяем: 1. Код ответа 201 (Created) 2. Наличие поля "ok: true" в ответе 3. После теста удаляем этого курьера
@@ -36,12 +44,10 @@ public class CourierCreationTest {
         //Отправляем запрос на создание курьера и проверки:
         courierSteps.createCourier(courier) //создаем нового курьера
                 .then()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .and()
                 .assertThat().body("ok", equalTo(true));
 
-        // Удаляем созданного курьера после теста
-        courierSteps.deleteCourierAfterLogin(loginData); //удаляем
     }
 
     /**
@@ -61,13 +67,13 @@ public class CourierCreationTest {
         // Первое создание курьера (должно быть успешным)
         courierSteps.createCourier(courier)
                 .then()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .and()
                 .assertThat().body("ok", equalTo(true));
         // Второе создание такого же курьера (должно вернуть ошибку)
         courierSteps.createCourier(courier)  //второе создание
                 .then()
-                .statusCode(409)
+                .statusCode(SC_CONFLICT)
                 .and()
                 .assertThat().body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
         // Удаляем созданного курьера
@@ -84,12 +90,12 @@ public class CourierCreationTest {
 
     public void creationCourierWithoutLogin() {
         // Создаем курьера без логина (null)
-        CourierCreation courier = new CourierCreation(null, password, firstName);
+        CourierCreation courier = new CourierCreation(null, password, null);
 
         // Отправляем запрос и проверяем ошибки
         courierSteps.createCourier(courier)
                 .then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .and()
                 .assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи"));
     }
@@ -104,11 +110,11 @@ public class CourierCreationTest {
 
     public void creationCourierWithoutPassword() {
         // Создаем курьера без пароля (null)
-        CourierCreation courier = new CourierCreation(login, null, firstName);
+        CourierCreation courier = new CourierCreation(login, null, null);
         // Отправляем запрос и проверяем ошибки
         courierSteps.createCourier(courier)
                 .then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .and()
                 .assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи"));
     }

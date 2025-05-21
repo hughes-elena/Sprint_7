@@ -5,7 +5,9 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import ru.praktikum.api.ApiEndpoints;
-import ru.praktikum.modelsPojo.*;
+import ru.praktikum.models.pojo.CourierId;
+import ru.praktikum.models.pojo.CourierLogin;
+import ru.praktikum.models.pojo.OrderCreation;
 
 import java.util.List;
 
@@ -40,11 +42,14 @@ public class OrderSteps {
 
     /** Шаг проверяет, что в ответе на создание заказа есть track-номер. @param response ответ от сервера для проверки*/
 
-    @Step("Проверка, что ответ содержит track")  //Аннотация для Allure-отчета
-    public void verifyTrackPresent(Response response) {
-        response.then() // Начинаем проверку ответа
-                .statusCode(201) // Проверяем код ответа (201 Created)
-                .body("track", notNullValue()); // Проверяем, что поле track не пустой
+
+    @Step("Отменить заказ по track-номеру")
+    public Response cancelOrder(int track) {
+       return prepareRequest()
+               .queryParam("track", track)
+               .when()
+               .put("/api/v1/orders/cancel");
     }
+
 }
 

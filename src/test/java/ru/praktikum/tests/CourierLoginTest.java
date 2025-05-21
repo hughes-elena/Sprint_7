@@ -5,57 +5,75 @@ import io.qameta.allure.junit4.DisplayName;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import ru.praktikum.modelsPojo.CourierCreation;
-import ru.praktikum.modelsPojo.CourierLogin;
+import ru.praktikum.models.pojo.CourierCreation;
+import ru.praktikum.models.pojo.CourierLogin;
 import ru.praktikum.steps.CourierSteps;
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-
+import com.github.javafaker.Faker;; // для генерации случайных данных
 
 @DisplayName("Тесты API логина курьера")
 public class CourierLoginTest {
     private final CourierSteps courierSteps = new CourierSteps();
-    public static String login = "ElenaH";
-    public static String password = "Qwerty123";
-    public static String firstName = "Елена";
+    private final Faker faker = new Faker(); // Создаём объект Faker
+    private  String login = faker.name().username();   // случайный логин
+    private  String password = faker.internet().password(); // случайный пароль
+    private final String firstName = faker.name().firstName();   // случайное имя
 
     @Before
     public void setUp() {
         CourierLogin loginData = new CourierLogin(login, password);
-        courierSteps.deleteCourierAfterLogin(loginData); // Если курьер был создан
+        courierSteps.deleteCourierAfterLogin(loginData); //Удалим курьера, если был создан
+        // Для каждого теста создаем нового курьера
+        CourierCreation courier = new CourierCreation(login, password, firstName);
+        courierSteps.createCourier(courier)
+                .then()
+                .statusCode(SC_CREATED);
     }
 
     @Test
     @DisplayName("Авторизация курьера")
     @Description("Проверка, что курьер может авторизоваться с валидными данными")
     public void authCourierWithCorrectData() {
-        //Создаем курьера
-        CourierCreation courier = new CourierCreation(login, password, firstName);
-        courierSteps.createCourier(courier)
-                .then()
-                .statusCode(201);
         //Логинимся и проверяем ответ
         CourierLogin loginData = new CourierLogin(login, password);
         courierSteps.loginCourier(loginData)
                 .then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .and()
                 .assertThat().body("id", instanceOf(Integer.class));
-        // Удаляем созданного курьера после теста
-        courierSteps.deleteCourierAfterLogin(loginData);
+        /* Удаляем созданного курьера после теста
+        courierSteps.deleteCourierAfterLogin(loginData);*/
     }
 
     @Test
     @DisplayName("Авторизация несуществующего курьера")
-    @Description("Проверка, что курьеру нельзя авторизоваться под несуществующим пользователем")
+    @Description("Проверка, что курьеру нельзя авторизоваться под несуществующим логином")
     public void authCourierWithWrongLogin() {
-
+        // Поменяли логин до аннотации @Before
+        login = "courier_does_not_exist_12345";
         //Логинимся и проверяем ответ
         CourierLogin loginData = new CourierLogin(login, password);
         courierSteps.loginCourier(loginData)
                 .then()
-                .statusCode(404)
+                .statusCode(SC_NOT_FOUND)
+                .and()
+                .assertThat().body("message", equalTo("Учетная запись не найдена"));
+    }
+
+    @Test
+    @DisplayName("Авторизация несуществующего курьера")
+    @Description("Проверка, что курьеру нельзя авторизоваться под несуществующим паролем")
+    public void authCourierWithWrongPassword() {
+        // Поменяли пароль до аннотации @Before
+        password = "password_does_not_exist_12345";
+        //Логинимся и проверяем ответ
+        CourierLogin loginData = new CourierLogin(login, password);
+        courierSteps.loginCourier(loginData)
+                .then()
+                .statusCode(SC_NOT_FOUND)
                 .and()
                 .assertThat().body("message", equalTo("Учетная запись не найдена"));
     }
@@ -64,44 +82,37 @@ public class CourierLoginTest {
     @DisplayName("Авторизация курьера без логина")
     @Description("Проверка, что курьеру нельзя авторизоваться без ввода логина")
     public void authCourierWithoutLogin() {
-        //Создаем курьера
-        CourierCreation courier = new CourierCreation(login, password, firstName);
-        courierSteps.createCourier(courier)
-                .then()
-                .statusCode(201);
+
         //Логинимся и проверяем ответ
         CourierLogin loginWithoutLogin = new CourierLogin(null, password);
         courierSteps.loginCourier(loginWithoutLogin)
                 .then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .and()
                 .assertThat().body("message", equalTo("Недостаточно данных для входа"));
-        // Удаляем созданного курьера после теста
+        /* Удаляем созданного курьера после теста
         CourierLogin validCourierLogin = new CourierLogin(login, password);
-        courierSteps.deleteCourierAfterLogin(validCourierLogin);
+        courierSteps.deleteCourierAfterLogin(validCourierLogin);*/
     }
 
     @Test
     @DisplayName("Авторизация курьера без пароля")
     @Description("Проверка, что курьеру нельзя авторизоваться без ввода пароля")
     public void authCourierWithoutPassword() {
-        //Создаем курьера
-        CourierCreation courier = new CourierCreation(login, password, firstName);
-        courierSteps.createCourier(courier)
-                .then()
-                .statusCode(201);
+
         //Логинимся и проверяем ответ
         CourierLogin loginDataWithoutPassword = new CourierLogin(login, null);
         courierSteps.loginCourier(loginDataWithoutPassword)
                 .then()
-                .assertThat().body("message", equalTo("Недостаточно данных для входа"))
+                .statusCode(SC_BAD_REQUEST)
                 .and()
-                .statusCode(400);
-        // Удаляем созданного курьера после теста
+                .assertThat().body("message", equalTo("Недостаточно данных для входа"))                ;
+        /* Удаляем созданного курьера после теста
         CourierLogin validCourierLogin = new CourierLogin(login, password);
-        courierSteps.deleteCourierAfterLogin(validCourierLogin);
+        courierSteps.deleteCourierAfterLogin(validCourierLogin);*/
 
     }
+
     @After
     public void cleanUp() {
         CourierLogin loginData = new CourierLogin(login, password);

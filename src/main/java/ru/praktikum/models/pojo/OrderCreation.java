@@ -1,4 +1,8 @@
-package ru.praktikum.modelsPojo;
+package ru.praktikum.models.pojo;
+//импортирую плагин lombok для уменьшения кода
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.util.List;
 
@@ -21,6 +25,9 @@ comment	string
 color необязательный	string[]
 Предпочитаемые цвета, записываются в поле color таблицы Orders
  */
+
+@Data
+@AllArgsConstructor
 public class OrderCreation {
 
     private String firstName = "Елена";
@@ -33,80 +40,65 @@ public class OrderCreation {
     private String comment = "Спасибо";
     private List<String> color;
 
+    // Отдельный конструктор только для списка цветов
     public OrderCreation(List<String> color) {
         this.color = color;
     }
+}
 
-    public String getFirstName() {
+/*Остальной код не нужен, тк используем плагин lombok и его аннотации Data и AllArgsConstructor
+public String getFirstName() {
         return firstName;
     }
-
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
-
     public String getLastName() {
         return lastName;
     }
-
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-
     public String getAddress() {
         return address;
     }
-
     public void setAddress(String address) {
         this.address = address;
     }
-
     public String getMetroStation() {
         return metroStation;
     }
-
     public void setMetroStation(String metroStation) {
         this.metroStation = metroStation;
     }
-
     public String getPhone() {
         return phone;
     }
-
     public void setPhone(String phone) {
         this.phone = phone;
     }
-
     public int getRentTime() {
         return rentTime;
     }
-
     public void setRentTime(int rentTime) {
         this.rentTime = rentTime;
     }
-
     public String getDeliveryDate() {
         return deliveryDate;
     }
-
     public void setDeliveryDate(String deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
-
     public String getComment() {
         return comment;
     }
-
     public void setComment(String comment) {
         this.comment = comment;
     }
-
     public List<String> getColor() {
         return color;
     }
-
     public void setColor(List<String> color) {
         this.color = color;
     }
-
-}
+}*/
